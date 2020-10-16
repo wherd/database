@@ -15,7 +15,7 @@ composer require wherd/database
 To create a new database connection just create a new instance of `Wherd\Database\Connection` class:
 
 ```php
-$database = new wherd\Database\Connection($dsn, $user, $password); // the same arguments as uses PDO
+$database = new Wherd\Database\Connection($dsn, $user, $password); // the same arguments as uses PDO
 ```
 
 Connection allows you to easily query your database by calling `query` method:
