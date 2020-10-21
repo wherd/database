@@ -173,6 +173,17 @@ class Connection
     // Shortcuts --------------------------------------------------------------
 
     /**
+     * Execute a query.
+     * @param string $sql
+     * @param mixed ...$params
+     * @return ResultSet
+     */
+    public function execute($sql, ...$params)
+    {
+        return $this->query($sql)->execute(...$params);
+    }
+
+    /**
      * Return single result row.
      * @param string $sql
      * @param mixed ...$params

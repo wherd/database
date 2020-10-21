@@ -94,7 +94,7 @@ class ResultSet
     /**
      * Execute a statement.
      * @param mixed ...$params
-     * @return self.
+     * @return self
      */
     public function execute(...$params)
     {
