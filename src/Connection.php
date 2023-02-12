@@ -102,7 +102,7 @@ class Connection
         return $result ? $this->getLastInsertId() : null;
     }
 
-    public function update(string $sql, mixed ...$params): bool
+    public function execute(string $sql, mixed ...$params): bool
     {
         $stmt = $this->prepare($sql);
         $result = $stmt->execute(...$params);
