@@ -14,26 +14,20 @@ class Statement implements IteratorAggregate
 {
     protected PDOStatement $statement;
 
+    protected bool $executed = false;
+
     /** @param array<mixed> $params */
     public function __construct(
         protected Connection $connection,
         protected string $sql,
         protected array $params
     ) {
-    }
-
-    protected function getPdoStatement(): PDOStatement
-    {
         static $types = [
             'boolean' => PDO::PARAM_BOOL,
             'integer' => PDO::PARAM_INT,
             'resource' => PDO::PARAM_LOB,
             'NULL' => PDO::PARAM_NULL,
         ];
-
-        if (isset($this->statement)) {
-            return $this->statement;
-        }
 
         $this->statement = $this->connection->getPdo()->prepare($this->sql);
 
@@ -45,8 +39,15 @@ class Statement implements IteratorAggregate
                 $types[$type] ?? PDO::PARAM_STR
             );
         }
+    }
 
-        $this->statement->execute();
+    protected function getStatement(): PDOStatement
+    {
+        if (!$this->executed) {
+            $this->executed = true;
+            $this->statement->execute();
+        }
+
         return $this->statement;
     }
 
@@ -54,16 +55,16 @@ class Statement implements IteratorAggregate
     {
         switch ($fetchMode) {
             case Fetch::Column:
-                $this->getPdoStatement()->setFetchMode($fetchMode->value, $extra ?? 0);
+                $this->statement->setFetchMode($fetchMode->value, $extra ?? 0);
                 break;
             case Fetch::ToClass:
-                $this->getPdoStatement()->setFetchMode($fetchMode->value, $extra);
+                $this->statement->setFetchMode($fetchMode->value, $extra);
                 break;
             case Fetch::ToObject:
-                $this->getPdoStatement()->setFetchMode($fetchMode->value, $extra);
+                $this->statement->setFetchMode($fetchMode->value, $extra);
                 break;
             default:
-                $this->getPdoStatement()->setFetchMode($fetchMode->value);
+                $this->statement->setFetchMode($fetchMode->value);
                 break;
         }
 
@@ -72,25 +73,17 @@ class Statement implements IteratorAggregate
 
     public function getRowCount(): int
     {
-        return $this->getPdoStatement()->rowCount();
+        return $this->getStatement()->rowCount();
     }
 
-    public function execute(mixed ...$params): void
+    public function execute(mixed ...$params): bool
     {
-        if (!empty($params)) {
-            $this->params = $params;
-        }
-
-        if (!isset($this->statement)) {
-            $this->getPdoStatement();
-        } else {
-            $this->statement->execute($params);
-        }
+        return $this->statement->execute($params);
     }
 
     public function fetch(): mixed
     {
-        $result = $this->getPdoStatement()->fetch();
+        $result = $this->getStatement()->fetch();
         if (!$result) {
             $this->close();
         }
@@ -98,25 +91,26 @@ class Statement implements IteratorAggregate
         return $result;
     }
 
-    public function fetchAll(): mixed
+    /** @return array<string,mixed> */
+    public function fetchAll(): array
     {
-        $result = $this->getPdoStatement()->fetchAll();
+        $result = $this->getStatement()->fetchAll();
         $this->close();
-        return $result;
+        return $result ?: [];
     }
 
     public function close(): void
     {
-        $this->getPdoStatement()->closeCursor();
+        $this->statement->closeCursor();
     }
 
     public function getIterator(): Traversable
     {
-        return $this->getPdoStatement()->getIterator();
+        return $this->getStatement()->getIterator();
     }
 
-    public function __invoke(mixed ...$params): void
+    public function __invoke(mixed ...$params): bool
     {
-        $this->execute(...$params);
+        return $this->execute(...$params);
     }
 }

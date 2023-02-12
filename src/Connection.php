@@ -66,4 +66,48 @@ class Connection
     {
         return new Statement($this, $sql, $params);
     }
+
+    // Shorthands
+
+    /** @return array<string,mixed> */
+    public function fetchAll(string $sql, mixed ...$params): array
+    {
+        return $this->prepare($sql, ...$params)->fetchAll();
+    }
+
+    public function fetch(string $sql, mixed ...$params): mixed
+    {
+        $stmt = $this->prepare($sql, ...$params);
+        $result = $stmt->fetch();
+
+        $stmt->close();
+        return $result;
+    }
+
+    public function fetchColumn(string $sql, mixed ...$params): mixed
+    {
+        $stmt = $this->prepare($sql, ...$params)->as(Fetch::Column);
+        $result = $stmt->fetch();
+        $stmt->close();
+
+        return $result;
+    }
+
+    public function insert(string $sql, mixed ...$params): ?int
+    {
+        $stmt = $this->prepare($sql);
+        $result = $stmt->execute(...$params);
+        $stmt->close();
+
+        return $result ? $this->getLastInsertId() : null;
+    }
+
+    public function update(string $sql, mixed ...$params): bool
+    {
+        $stmt = $this->prepare($sql);
+        $result = $stmt->execute(...$params);
+        $stmt->close();
+
+        return $result;
+    }
 }

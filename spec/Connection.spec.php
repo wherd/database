@@ -15,13 +15,17 @@ describe('Describes database connection', function () {
     it('should execute queries', function () {
         /** @var Connection */
         $instance = $this->instance;
-        $instance->prepare('CREATE TABLE users (username TEXT, password TEXT)')->execute();
+
+        $result = $instance->prepare('CREATE TABLE users (username TEXT, password TEXT)')->execute();
+        expect($result)->toBe(true);
         $query = $instance->prepare('INSERT INTO users (username, password) VALUES (?, ?)');
 
-        $query->execute('wherd', 'teste');
+        $result = $query->execute('wherd', 'teste');
+        expect($result)->toBe(true);
         expect($instance->getLastInsertId())->toBe(1);
 
-        $query->execute('nadal', 'teste');
+        $result = $query->execute('nadal', 'teste');
+        expect($result)->toBe(true);
         expect($instance->getLastInsertId())->toBe(2);
 
         $query->close();
@@ -32,10 +36,12 @@ describe('Describes database connection', function () {
         $instance = $this->instance;
         $query = $instance->prepare('INSERT INTO users (username, password) VALUES (?, ?)');
 
-        $query('wherd2', 'teste');
+        $result = $query('wherd2', 'teste');
+        expect($result)->toBe(true);
         expect($instance->getLastInsertId())->toBe(3);
 
-        $query('nadal2', 'teste');
+        $result = $query('nadal2', 'teste');
+        expect($result)->toBe(true);
         expect($instance->getLastInsertId())->toBe(4);
 
         $query->close();
@@ -44,9 +50,7 @@ describe('Describes database connection', function () {
     it('should fetch column', function () {
         /** @var Connection */
         $instance = $this->instance;
-        $query = $instance->prepare('SELECT * FROM users');
-
-        $query->as(Fetch::Column);
+        $query = $instance->prepare('SELECT * FROM users')->as(Fetch::Column);
 
         expect($query->fetch())->toBe('wherd');
         expect($query->fetch())->toBe('nadal');
